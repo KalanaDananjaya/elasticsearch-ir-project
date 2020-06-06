@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup
 import requests,time,os
-import json
+import json,re
+from lxml import etree
 
+global_song = ''
 def get_all_song_url(pg_no):
 	url = 'https://sinhalasongbook.com/all-sinhala-song-lyrics-and-chords/?_page={}/'.format(pg_no)
 	print(url)
@@ -48,17 +50,35 @@ def process_content(key_val_pair):
 	else:
 		return None,None
 
+def parse_lyrics(lyrics):
+	space_set = set([' '])
+	processed = ''
+	regex = r"([A-z])+|[0-9]|\||-|∆|([.!?\\\/\(\)\+#&])+"
+	lyric_lines = lyrics.split('\n')
+	for line in lyric_lines:
+		new = re.sub(regex, '', line)
+		chars = set(new)
+		if not ((chars == space_set) or (len(chars) is 0)):
+			processed += new + '\n'
+	return processed
+
+
 def parse_html_song(html_pg):
 	soup = BeautifulSoup(html_pg, 'html.parser')
 	song = {}
 	class_list = ["entry-tags","entry-categories","entry-author-name","lyrics","music"]
 	title = soup.find('h1', {"class": "entry-title"}).get_text()
 	guit_key=soup.find_all('h3', {'class': None})[0].get_text().split('|')
-	guitar_key = guit_key[0].split(':')[1].strip()
-	beat = guit_key[1].split(':')[1].strip()
+	if guit_key and len(guit_key)==2:
+		guitar_key = guit_key[0].split(':')
+		if len(guitar_key)==2:
+			guitar_key = guitar_key[1].strip()
+			song.update({'guitar_key': guitar_key})
+		beat = guit_key[1].split(':')
+		if len(beat)==2:
+			beat = beat[1].strip()
+			song.update({'beat': beat})
 	song.update({'title': title})
-	song.update({'guitar_key':guitar_key})
-	song.update({'beat':beat})
 	for class_l in class_list:
 		content = soup.find_all('span',{"class":class_l})
 		if content:
@@ -67,6 +87,11 @@ def parse_html_song(html_pg):
 				song.update({key:val})
 		else:
 			pass
+	unprocessed_lyrics = soup.select('pre')[0].get_text()
+	processed_lyrics = parse_lyrics(unprocessed_lyrics)
+	song.update({'song_lyrics':processed_lyrics})
+	print(song)
+	print (processed_lyrics)
 	return song
 
 def write_res(links_array):
@@ -92,7 +117,7 @@ def write_song(song,id):
 def scrape_songs():
 	with open ('next_song_link.txt', 'r') as f:
 		next_index = int(f.readlines()[0])
-	while next_index < 1 :
+	while next_index < 250 :
 		print('Scraping song',next_index)
 		url = get_song_url(int(next_index))
 		html_doc = make_req(url)
@@ -105,9 +130,7 @@ def scrape_songs():
 		time.sleep (15)
 
 
-
-
-
 if __name__ == "__main__":
 	#get_song_list()
+
 	scrape_songs()
