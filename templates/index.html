@@ -1,0 +1,95 @@
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<!--<link href="main.css" rel="stylesheet">-->
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+<!------ Include the above in your HEAD tag ---------->
+<script>
+	function MyFunction(aggregate){
+		keyword = aggregate.name;
+		console.log("keyword: "+keyword);
+		songs_array = document.getElementsByClassName('search-result row');
+		songs_array = Array.from(songs_array);
+		matching_songs = songs_array.filter(keyword_filter,keyword);
+		len_matching = matching_songs.length;
+		len_original = songs_array.length;
+		section = document.getElementById('song_section');
+		section.innerHTML = matching_songs.map(e => e.outerHTML).join()
+		console.log(section);
+		header = document.getElementById('results');
+		header.innerHTML = `<h2 class="lead" id="results"><strong class="text-danger">${len_matching}</strong> results out of ${len_original} matches the criteria</h2>`;
+
+		var tags_ul = document.getElementById("tags");
+		var tags_li = document.createElement("li");
+		tags_li.setAttribute("style","display:inline-block; padding:15px; margin:10px; border: 2px solid blue; border-radius: 5px;");
+		tags_li.appendChild(document.createTextNode(keyword));
+		tags_ul.appendChild(tags_li);
+	}
+
+	function keyword_filter(element){
+		keyword = this;
+		content = element.innerText;
+		return content.includes(keyword)
+	}
+
+</script>
+
+<div class="container">
+	<form action="http://127.0.0.1:5000/" method="post">
+		<input type="text" class="searchTerm" name="searchTerm"  placeholder="What are you looking for?">
+    	<input type="submit" value="Submit">
+	</form>
+
+	{% if hits %}
+    <hgroup class="mb20">
+		<h1>Search Results</h1>
+		<h2 class="lead" id="results"><strong class="text-danger">{{ num_results }}</strong> results were found for the search for <strong class="text-danger">{{  query  }}</strong></h2>
+	</hgroup>
+	<h4><span>Tags: </span><ul id="tags" style="display: inline-block"></ul></h4>
+
+    <section id='song_section' class="col-md-8">
+		{% for hit in hits %}
+		<article class="search-result row">
+			<div class="col-md-12">
+				<h3><a href="#" title="">{{ hit._source.title }}</a></h3>
+				<ul class="meta-search">
+					<li><i class="glyphicon glyphicon-tags"></i> <span>Genre: {{ hit._source.genre }} </span></li>
+					<li><i class="glyphicon glyphicon-tags"></i> <span>Artist: {{ hit._source.artist }}</span></li>
+					 <li><i class="glyphicon glyphicon-tags"></i> <span>Music: {{ hit._source.music }}</span></li>
+					<li><i class="glyphicon glyphicon-tags"></i> <span>Lyrics: {{ hit._source.lyrics }}</span></li>
+					<li><i class="glyphicon glyphicon-tags"></i> <span>Key: {{ hit._source.guitar_key }}</span></li>
+					<li><i class="glyphicon glyphicon-tags"></i> <span>Views: {{ hit._source.views }}</span></li>
+				</ul>
+				<p style="white-space: pre-line">{{ hit._source.song_lyrics }}</p>
+			</div>
+			<div class="col-md-6">
+
+			</div>
+			<span class="clearfix borda"></span>
+		</article>
+		{% endfor %}
+	</section>
+	<section class="col-md-4">
+		{% for key,value in aggs.items() %}
+			<ul class="meta-search">{{ key }}
+			{% for bucket in value.buckets %}
+				<li><a id="myLink" href="#" name="{{ bucket.key }}" onclick="MyFunction(this)" >{{ bucket.key }}<!--( {{ bucket.doc_count }} )--></a></li>
+			{% endfor %}
+			</ul>
+		{% endfor %}
+	</section>
+
+	{% else %}
+		{% if init %}
+			<hgroup class="mb20">
+			<h1>Sinhala Song Search Engine</h1>
+			<h2 class="lead">Please enter the search query in the box</strong></h2>
+		</hgroup>
+		{% else %}
+		<hgroup class="mb20">
+			<h1>Search Results</h1>
+			<h2 class="lead"><strong class="text-danger">0</strong> results were found for the search for <strong class="text-danger">{{  query  }}</strong></h2>
+		</hgroup>
+		{% endif %}
+	{% endif %}
+</div>
