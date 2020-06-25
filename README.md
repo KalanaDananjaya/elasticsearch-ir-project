@@ -67,4 +67,4 @@ Boosting has been used as the main query optimization technique. Each field of a
 
 A basic representation of the rules are applied to each search phrase to identify the keywords, classify them into relevant search types and boost the relevant data fields is shown below.
 
-![Search Classification and Boosting Rules](rules.png =165*400)
+![Search Classification and Boosting Rules](rules.png)
