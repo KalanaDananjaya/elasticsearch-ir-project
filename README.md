@@ -12,14 +12,14 @@ To start the search engine follow the instructions given below.
 ## Directory Structure
 
 The important files and directories of the repository is shown below
-├── corpus : Original data scraped from the [website](http://sinhalasongbook.com/)
-├── translated-corpus : Data translated to Sinhala
-├── summary-corpus : Summarized data of the corpus used to create the index
-├── templates : UI related files
-├── backend.py : Flask backend of the website
-├── queries.py :  ElasticSeacrch Queries
-├── scraper.py :  Source code for the data scraper
-├── search.py : Search functions used to classify user search phrases
+├── corpus : Original data scraped from the [website](http://sinhalasongbook.com/)  
+├── translated-corpus : Data translated to Sinhala  
+├── summary-corpus : Summarized data of the corpus used to create the index  
+├── templates : UI related files  
+├── backend.py : Flask backend of the website  
+├── queries.py :  ElasticSeacrch Queries  
+├── scraper.py :  Source code for the data scraper  
+├── search.py : Search functions used to classify user search phrases  
 
 ## Main Functionalities
 
@@ -57,14 +57,14 @@ All the English metadata fields were translated to Sinhala using the Google Tran
 ### Rule Based Classification 
 
 A rule based classification has been used to classify the user search queries into different types of searches. The search phrase is scanned both fully and token-wise for keywords and based on the keywords present, different rules are applied.
-> Eg:- If the phrase contains a number, do a range query and sort the result by views and return the best matching number of songs equal to the given number
+> Eg: If the phrase contains a number, do a range query and sort the result by views and return the best matching number of songs equal to the given number
 
 ### Boosting 
 
 Boosting has been used as the main query optimization technique. Each field of a search is boosted by a certain value based on the keywords present in the search phrase.
 
-> Eg:- If the phrase contains the word “ගැයූ" boost the artist field
+> Eg: If the phrase contains the word “ගැයූ" boost the artist field
 
 A basic representation of the rules are applied to each search phrase to identify the keywords, classify them into relevant search types and boost the relevant data fields is shown below.
 
-![Search Classification and Boosting Rules](rules.png)
+![Search Classification and Boosting Rules](rules.png =165*400)
