@@ -52,6 +52,7 @@ def agg_multi_match_q(query, fields=['title','song_lyrics'], operator ='or'):
 			}
 		}
 	}
+
 	q = json.dumps(q)
 	return q
 

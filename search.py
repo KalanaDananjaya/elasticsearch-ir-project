@@ -121,44 +121,64 @@ def search(phrase):
     num=0
     # If term is in english,boost guitar key
     if isEnglish(phrase):
-        print ('English')
+        print ('English:',phrase)
         flags[3] = 2
         flags[5] = 2
         flags[7] = 2
         flags[10] = 3
+        print ('Boosting for english language')
     else:
-        print('Sinhala')
+        print('Sinhala:',phrase)
         flags[2] = 3
         flags[4] = 3
         flags[6] = 3
         flags[8] = 3
         flags[9] = 3
-    tokens = phrase.split()
+        print('Boosting for sinhala language')
 
+    tokens = phrase.split()
     # Identify numbers
     for word in tokens:
         if word.isdigit():
             flags[0] = 1
             num = int(word)
-            # Make a range query with num
+            print ('Identified sort number',num)
         # Check whether a value from any list is present
         for i in range(2,9):
             if word in all_lists[i]:
-             flags[i] = 5
-    # Check whether phrase is in any list
+                print('Boosting field',i,'for',word,'in all list')
+                flags[i] = 5
+        # Check whether token matches any synonyms
+        for i in range(2,9):
+            if word in synonym_list[i]:
+                print('Boosting field', i, 'for', word, 'in synonym list')
+                flags[i] = 5
+        if word in syn_key:
+            print('Boosting guitar key')
+            flags[10] = 5
+        if word in syn_popularity:
+            print('Start sort by views')
+            if flags[0] == 0:
+                flags[0] = 1
+                num = 500
+    # Check whether full phrase is in any list
     for i in range(2, 9):
         if phrase in all_lists[i]:
+            print('Boosting field', i, 'for', phrase, 'in all list')
             flags[i] = 5
     # If there are more than 5 words,boost lyrics
     if len(tokens) > 5:
+        print('Boosting song lyrics for tokens > 5')
         flags[9] = 5
     fields = boost(flags)
     print(fields)
     # If the query contain a number call sort query
-    if flags[0] == 0 :
+    if flags[0] == 0:
         query_body = queries.agg_multi_match_q(phrase, fields)
+        print('Making Faceted Query')
     else:
         query_body = queries.agg_multi_match_and_sort_q(phrase, num, fields)
+        print('Making Range Query')
     res = client.search(index=INDEX, body=query_body)
     return res
 
@@ -189,6 +209,17 @@ english_lyrics, sinhala_lyrics = get_all_lyrics()
 english_music, sinhala_music = get_all_music()
 all_lists = [None, None, sinhala_genres, english_artists, sinhala_artists, english_lyrics, sinhala_lyrics, english_music, sinhala_music]
 
+syn_lyrics = ['ගත්කරු','රචකයා','ලියන්නා','ලියන','රචිත','ලියපු','ලියව්‌ව','රචනා','රචක','ලියන්']
+syn_eng_lyrics = ['lyricist','write','wrote','songwriter']
+syn_artist = ['ගායකයා','ගයනවා','ගායනා','ගායනා','ගැයු','ගයන']
+syn_eng_artist = ['sing', 'artist','singer','sung']
+syn_music = ['සංගීත']
+syn_eng_music = ['composer','music','composed']
+syn_popularity=['හොඳම','ජනප්‍රිය','ප්‍රචලිත','ප්‍රසිද්ධ','හොදම','ජනප්‍රියම']
+syn_key = ['Minor','Major','minor','major']
+syn_genre = ['කැලිප්සෝ','සම්භාව්ය','වත්මන්','චිත්‍රපට','පොප්','දේවානුභාවයෙන්','රන්','පැරණි','රන්වන්','පොප්','කණ්ඩායම්','යුගල','අලුත්','නව','පැරණි','පොප්ස්']
+
+synonym_list = [None, None, syn_genre, syn_eng_artist, syn_artist, syn_eng_lyrics, syn_lyrics, syn_eng_music, syn_music]
 #terms = ["ආදරේ මන්දිරේ",'amaradeva 10','top 10','ඉල්ලීම']
 
 # for word in terms:
